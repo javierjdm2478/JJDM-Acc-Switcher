@@ -132,6 +132,15 @@ async function swapTo(request, e) {
     else await DotNet.invokeMethodAsync("TcNo-Acc-Switcher-Server", `SwapTo${getCurrentPage()}WithReq`, selected.attr("id"), request);
 }
 
+async function launchIsolated(e) {
+    if (e !== undefined && e !== null) e.preventDefault();
+    if (!getSelected()) return;
+
+    const currentPage = getCurrentPage();
+    if (currentPage === "Steam") await DotNet.invokeMethodAsync("TcNo-Acc-Switcher-Server", "LaunchSteam", selected.attr("id"), "");
+    else if (currentPage === "Basic") await DotNet.invokeMethodAsync("TcNo-Acc-Switcher-Server", "LaunchEpic", selected.attr("id"), "");
+}
+
 // Copies a game's folder from one userdata directory to another
 async function CopySettingsFrom(e, game) {
     if (e !== undefined && e !== null) e.preventDefault();

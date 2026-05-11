@@ -345,6 +345,7 @@ namespace TcNo_Acc_Switcher_Server.Data.Settings
             var menuBuilder = new MenuBuilder(new Tuple<string, object>[]
             {
                 new ("Context_SwapTo", "swapTo(-1, event)"),
+                new ("Launch isolated", "launchIsolated(event)"),
                 new ("Context_LoginAsSubmenu", new Tuple<string, object>[]
                     {
                         new ("Invisible", "swapTo(7, event)"),

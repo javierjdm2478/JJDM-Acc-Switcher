@@ -160,6 +160,8 @@ namespace TcNo_Acc_Switcher_Server.Data.Settings
                 new []
                 {
                     new ("Context_SwapTo", "swapTo(-1, event)"),
+                    CurrentPlatform.FullName == "Epic Games" ?
+                        new Tuple<string, object>("Launch isolated", "launchIsolated(event)") : null,
                     new ("Context_ChangeName", "showModal('changeUsername')"),
                     new ("Context_CreateShortcut", "createShortcut()"),
                     new ("Context_ChangeImage", "changeImage(event)"),

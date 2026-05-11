@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Runtime.Versioning;
+using System.Security;
 using System.Security.Principal;
 using System.ServiceProcess;
 
@@ -30,6 +31,37 @@ namespace TcNo_Acc_Switcher_Globals
         #region PROCESSES
         public static bool IsAdministrator => OperatingSystem.IsWindows() && new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
         public static void StartProgram(string path, bool elevated) => StartProgram(path, elevated, "");
+
+        [SupportedOSPlatform("windows")]
+        public static bool StartProgramAsUser(string path, string userName, string password, string args = "")
+        {
+            try
+            {
+                using var securePassword = new SecureString();
+                foreach (var c in password) securePassword.AppendChar(c);
+                securePassword.MakeReadOnly();
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = path,
+                    Arguments = args,
+                    UserName = userName,
+                    Domain = Environment.MachineName,
+                    Password = securePassword,
+                    LoadUserProfile = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = Path.GetDirectoryName(path) ?? Directory.GetCurrentDirectory()
+                };
+
+                Process.Start(startInfo);
+                return true;
+            }
+            catch (Exception e)
+            {
+                WriteToLog($"Failed to start isolated process {path} as {userName}.", e);
+                return false;
+            }
+        }
 
         /// <summary>
         /// Starts a process with or without Admin

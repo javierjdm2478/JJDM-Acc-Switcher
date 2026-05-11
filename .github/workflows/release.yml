@@ -1,0 +1,53 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore client
+        run: dotnet restore TcNo-Acc-Switcher-Client/TcNo-Acc-Switcher-Client.csproj
+
+      - name: Build client
+        run: dotnet build TcNo-Acc-Switcher-Client/TcNo-Acc-Switcher-Client.csproj --configuration Release -p:Platform=x64 --no-restore
+
+      - name: Build runas helper
+        run: dotnet build runas/runas.csproj --configuration Release -p:Platform=x64
+
+      - name: Copy runas helper
+        shell: pwsh
+        run: |
+          $clientOut = "TcNo-Acc-Switcher-Client/bin/x64/Release/net8.0-windows7.0"
+          $runas = Get-ChildItem -Path "TcNo-Acc-Switcher-Client/bin/runas" -Filter "runas.exe" -Recurse | Select-Object -First 1
+          if ($null -eq $runas) { throw "runas.exe was not built" }
+          Copy-Item -LiteralPath $runas.FullName -Destination $clientOut -Force
+
+      - name: Package release
+        shell: pwsh
+        run: |
+          $clientOut = "TcNo-Acc-Switcher-Client/bin/x64/Release/net8.0-windows7.0"
+          $zip = "TcNo-Acc-Switcher-Isolated-${{ github.ref_name }}.zip"
+          Compress-Archive -Path "$clientOut/*" -DestinationPath $zip -Force
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TcNo-Acc-Switcher-Isolated-${{ github.ref_name }}.zip
+          generate_release_notes: true
