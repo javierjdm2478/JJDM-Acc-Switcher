@@ -26,24 +26,24 @@ jobs:
       - name: Restore client
         run: dotnet restore TcNo-Acc-Switcher-Client/TcNo-Acc-Switcher-Client.csproj
 
-      - name: Build client
-        run: dotnet build TcNo-Acc-Switcher-Client/TcNo-Acc-Switcher-Client.csproj --configuration Release -p:Platform=x64 --no-restore
+      - name: Publish client
+        run: dotnet publish TcNo-Acc-Switcher-Client/TcNo-Acc-Switcher-Client.csproj --configuration Release -p:Platform=x64 -r win-x64 --self-contained false -o publish/client --no-restore
 
-      - name: Build runas helper
-        run: dotnet build runas/runas.csproj --configuration Release -p:Platform=x64
+      - name: Publish runas helper
+        run: dotnet publish runas/runas.csproj --configuration Release -p:Platform=x64 -r win-x64 --self-contained false -o publish/runas
 
       - name: Copy runas helper
         shell: pwsh
         run: |
-          $clientOut = "TcNo-Acc-Switcher-Client/bin/x64/Release/net8.0-windows7.0"
-          $runas = Get-ChildItem -Path "TcNo-Acc-Switcher-Client/bin/runas" -Filter "runas.exe" -Recurse | Select-Object -First 1
+          $clientOut = "publish/client"
+          $runas = Get-ChildItem -Path "publish/runas" -Filter "runas.exe" -Recurse | Select-Object -First 1
           if ($null -eq $runas) { throw "runas.exe was not built" }
           Copy-Item -LiteralPath $runas.FullName -Destination $clientOut -Force
 
       - name: Package release
         shell: pwsh
         run: |
-          $clientOut = "TcNo-Acc-Switcher-Client/bin/x64/Release/net8.0-windows7.0"
+          $clientOut = "publish/client"
           $zip = "TcNo-Acc-Switcher-Isolated-${{ github.ref_name }}.zip"
           Compress-Archive -Path "$clientOut/*" -DestinationPath $zip -Force
 
