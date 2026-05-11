@@ -1,4 +1,5 @@
 name: Build and Release
+# Builds Windows artifacts and publishes a GitHub release for version tags.
 
 on:
   push:
